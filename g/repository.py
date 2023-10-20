@@ -3,7 +3,7 @@ import os
 from g import defaults
 
 
-def g_init(path: str = '.'):
+def g_init(path: str = "."):
     """
     Initialize a new repository.
     See g/defaults.py for the default directory structure.
@@ -16,11 +16,11 @@ def g_init(path: str = '.'):
 
     # Create the .g directory
     if os.path.exists(os.path.join(path, defaults.GIT_DIR)):
-        raise Exception('Repository already exists.')
+        raise Exception("Repository already exists.")
     os.mkdir(os.path.join(path, defaults.GIT_DIR))
 
     # Create the index file
-    open(os.path.join(path, defaults.INDEX_FILE), 'w').close()
+    open(os.path.join(path, defaults.INDEX_FILE), "w").close()
 
     # Create the objects directory
     os.mkdir(os.path.join(path, defaults.OBJ_DIR))
@@ -29,8 +29,8 @@ def g_init(path: str = '.'):
     os.mkdir(os.path.join(path, defaults.REFS_DIR))
 
     # Create the HEAD file
-    open(os.path.join(path, defaults.HEAD_FILE), 'w').close()
+    open(os.path.join(path, defaults.HEAD_FILE), "w").close()
 
     # Create the main branch
-    with open(os.path.join(path, defaults.HEAD_FILE), 'w') as f:
-        f.write('ref: refs/heads/main\n')    
+    with open(os.path.join(path, defaults.HEAD_FILE), "w") as f:
+        f.write("ref: refs/heads/main\n")

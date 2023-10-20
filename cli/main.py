@@ -1,5 +1,5 @@
 import click
-from g import repository, index, objects
+from g import repository, index
 
 
 @click.group()
@@ -8,14 +8,14 @@ def cli():
 
 
 @cli.command()
-@click.argument('path', default='.')
-def init(path):
+@click.argument("path", default=".")
+def init(path: str):
     """Initialize a new repository."""
     repository.g_init(path)
 
 
 @cli.command()
-@click.argument('path')
+@click.argument("path")
 def add(path: str):
     """Stage a file, or a directory."""
     index.add(path)

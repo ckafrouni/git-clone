@@ -1,19 +1,22 @@
 import os
 
-from g import objects, defaults
+from g import defaults
+from g.objects import Tree, Blob
 
-def read_index() -> objects.Tree:
+
+def read_index() -> Tree:
     """Read the index file."""
-    with open(defaults.INDEX_FILE, 'rb') as f:
+
+    with open(defaults.INDEX_FILE, "rb") as f:
         data = f.read()
-    return objects.Tree.deserialize(data)
+    return Tree.deserialize(data)
 
 
-def add(path: str):
+def add(path: str) -> None:
     """Stage a file or directory."""
+
     # Read the index
     index = read_index()
-    print(index.serialize())
 
     # We have a file, we want to add it to the index
     if os.path.isfile(path):
@@ -24,52 +27,45 @@ def add(path: str):
         add_dir(index, path)
 
     else:
-        raise Exception('Not a file or directory.')
+        print(f"Path {path} is not a file or directory.")
+        return
 
-def add_file(index: objects.Tree, path: str):
-    """Add a file to the index."""
-    if not os.path.isfile(path):
-        raise Exception('Not a file.')
-    
-    with open(path, 'rb') as f:
-        data = f.read()
-
-    blob = objects.Blob(data)
-    blob.write(os.path.join(defaults.OBJ_DIR, blob.hash))
-
-    basename = os.path.basename(path.strip('/'))
-    entry = objects.Tree.Entry(defaults.DEFAULT_FILE_MODE, defaults.BLOB, blob.hash, basename)
-
-    index.add_entry(entry)
+    # Write the index
     index.write(defaults.INDEX_FILE)
 
-def add_dir(parent_index: objects.Tree, path: str):
+
+def add_file(tree: Tree, path: str):
+    """Add a file to the tree."""
+
+    with open(path, "rb") as f:
+        data = f.read()
+
+    blob = Blob(data)
+
+    basename = os.path.basename(path.strip("/").strip("\\"))
+    tree.add_entry(blob.as_entry(basename))
+
+
+def add_dir(parent_tree: Tree, path: str):
     """
     Add a directory to the index. This is a recursive operation.
     """
-    if not os.path.isdir(path):
-        raise Exception('Not a directory.')
-    
+
     # Create a new tree object specifically for this directory
-    current_tree = objects.Tree()
-    
+    new_tree = Tree()
+
     # Loop through each file and subdirectory in the current directory
     for file in os.listdir(path):
         file_path = os.path.join(path, file)
-        
+
         # If it's a file, add it to the current tree
         if os.path.isfile(file_path):
-            add_file(current_tree, file_path)
-        
+            add_file(new_tree, file_path)
+
         # If it's a directory, recursively add it and its contents to a new tree
         elif os.path.isdir(file_path):
-            add_dir(current_tree, file_path)
-    
-    # Serialize the current tree and write it to disk
-    current_tree.write(os.path.join(defaults.OBJ_DIR, current_tree.hash))
-    
+            add_dir(new_tree, file_path)
+
     # Add an entry for the current tree to the parent index
-    basename = os.path.basename(path)
-    entry = objects.Tree.Entry(defaults.DEFAULT_DIR_MODE, defaults.TREE, current_tree.hash, basename)
-    parent_index.add_entry(entry)
-    parent_index.write(defaults.INDEX_FILE)
+    basename = os.path.basename(path.strip("/").strip("\\"))
+    parent_tree.add_entry(new_tree.as_entry(basename))
